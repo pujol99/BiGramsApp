@@ -32,11 +32,20 @@ public class BiGramsApp {
                 .map(word -> ExtendedSimplifiedTweet.fromJson(word)) // Get Optional from tweet json
                 .filter(s-> s.isPresent()) // Filter only present
                 .map(s -> s.get()) // Optional to SimplifiedTweet
-                .filter(s -> s.getLanguage().equals(lang)) // Filter language
-                .map(s -> s.toString()); // SimplifiedTweet to String
+                //.filter(s -> s.getLanguage().equals(lang)) // Filter language
+                .map(s -> s.toString()) // SimplifiedTweet to String
+                .map(word -> normalise(word)); //normalizamos el texto
 
         sentences.saveAsTextFile(outputDir);
 
+
+
+
     }
 
+    private static String normalise(String word) {
+
+        return word.trim().toLowerCase();
+
+    }
 }
