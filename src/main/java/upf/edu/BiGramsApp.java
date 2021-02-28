@@ -4,6 +4,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.SparkConf;
+import scala.Tuple2;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -25,22 +26,25 @@ public class BiGramsApp {
 
         SparkConf conf = new SparkConf().setAppName("Twitter Filter");
         conf.setMaster("local[*]");
+
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
 
         JavaRDD<String> sentences = sparkContext.textFile(input)
                 .filter(sentence -> !sentence.isEmpty())
                 .map(word -> ExtendedSimplifiedTweet.fromJson(word)) // Get Optional from tweet json
                 .filter(s-> s.isPresent()) // Filter only present
-                .map(s -> s.get()) // Optional to SimplifiedTweet
+                .map(s -> s.get().getText()) // Optional to SimplifiedTweet
                 //.filter(s -> s.getLanguage().equals(lang)) // Filter language
-                .map(s -> s.toString()) // SimplifiedTweet to String
+                //.map(s -> s.toString()) // SimplifiedTweet to String
                 .map(word -> normalise(word)); //normalizamos el texto
 
-        sentences.saveAsTextFile(outputDir);
+        JavaPairRDD<String, Integer> counts = sentences
+                .flatMap(s -> Arrays.asList(s.split("[ ]")).iterator())
+                //.map(word -> normalise(word))
+                .mapToPair(word -> new Tuple2<>(word, 1))
+                .reduceByKey((a, b) -> a + b);
 
-
-
-
+        counts.saveAsTextFile(outputDir);
     }
 
     private static String normalise(String word) {
