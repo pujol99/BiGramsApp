@@ -19,9 +19,12 @@ public class BiGramsApp {
         String outputDir = argsList.get(1);
         String input = argsList.get(2);
 
+
+
         long start = System.currentTimeMillis();
 
         SparkConf conf = new SparkConf().setAppName("Twitter Filter");
+        conf.setMaster("local[*]");
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
 
         JavaRDD<String> sentences = sparkContext.textFile(input)
@@ -31,6 +34,7 @@ public class BiGramsApp {
                 .map(s -> s.get()) // Optional to SimplifiedTweet
                 .filter(s -> s.getLanguage().equals(lang)) // Filter language
                 .map(s -> s.toString()); // SimplifiedTweet to String
+
         sentences.saveAsTextFile(outputDir);
 
     }

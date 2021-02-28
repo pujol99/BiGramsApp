@@ -51,8 +51,6 @@ public class ExtendedSimplifiedTweet {
     String text = null, userName = null, language= null, retweetedUserName = null;
     Boolean isRetweeted = null;
 
-
-
     JsonElement json_aux = upf.edu.ExtendedSimplifiedTweet.parser.parse(jsonStr);
     JsonObject final_tweet = json_aux.getAsJsonObject();
     //System.out.println(final_tweet);
@@ -67,14 +65,6 @@ public class ExtendedSimplifiedTweet {
     }catch(Exception e) {
       return Optional.empty();
     }
-
-    //NEW CODE
-
-
-
-
-
-
 
 
 
@@ -112,15 +102,49 @@ public class ExtendedSimplifiedTweet {
       }else{
         return Optional.empty();
       }
+      Optional<Long> oFollowCount = Optional.ofNullable(user.get("followers_count").getAsLong());
+      if(oFollowCount.isPresent()){
+        followersCount = user.get("followers_count").getAsLong();
+      }
 
     }else
       return Optional.empty();
+
+    try {
+        Optional<JsonObject> oIsRetweeted = Optional.ofNullable(final_tweet.get("retweeted_status").getAsJsonObject());
+        if(oIsRetweeted.isPresent()) {
+          isRetweeted = true;
+          JsonObject retweetedInfo = final_tweet.get("retweeted_status").getAsJsonObject();
+          Optional<Long> oRetweetedTweetId = Optional.ofNullable(retweetedInfo.get("id").getAsLong());
+          if (oRetweetedTweetId.isPresent()) {
+            retweetedTweetId = retweetedInfo.get("id").getAsLong();
+          }
+          Optional<JsonObject> oRetweetedUser = Optional.ofNullable(retweetedInfo.get("user").getAsJsonObject());
+          if (oRetweetedUser.isPresent()) {
+            JsonObject retweetedUser = final_tweet.get("user").getAsJsonObject();
+            Optional<Long> oUserId = Optional.ofNullable(retweetedUser.get("id").getAsLong());
+            if (oUserId.isPresent()) {
+              retweetedUserId = retweetedUser.get("id").getAsLong();
+            }
+            Optional<String> oUserName = Optional.ofNullable(retweetedUser.get("name").getAsString());
+            if (oUserName.isPresent()) {
+              retweetedUserName = retweetedUser.get("name").getAsString();
+            }
+
+          }
+        }
+
+    }catch(Exception e) {
+      isRetweeted = false;
+    }
+
 
     upf.edu.ExtendedSimplifiedTweet simplified_tweet = new upf.edu.ExtendedSimplifiedTweet(tweetId, text, userId, userName,
             followersCount, language, isRetweeted,
             retweetedUserId, retweetedTweetId, retweetedUserName, timestampMs);
 
     return Optional.ofNullable(simplified_tweet);
+
 
 
   }
@@ -153,4 +177,25 @@ public class ExtendedSimplifiedTweet {
   public long getTimestampMs() {
     return timestampMs;
   }
+
+  public Long getFollowersCount() {
+    return followersCount;
+  }
+
+  public Boolean getIsRetweeted(){
+    return isRetweeted;
+  }
+
+  public Long getRetweetedUserId(){
+    return retweetedUserId;
+  }
+
+  public Long getRetweetedTweetId(){
+    return retweetedTweetId;
+  }
+
+  public String getRetweetedUserName(){
+    return retweetedUserName;
+  }
+
 }
