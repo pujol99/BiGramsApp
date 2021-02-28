@@ -17,25 +17,25 @@ public class ExtendedSimplifiedTweet {
   private final String userName;          // the user name ('user'->'name')
   private final String language;          // the language of a tweet ('lang')
   private final Long followersCount;      // the number of followers (’user’->’followers_count’)
-  private final boolean isRetweeted;      // is it a retweet? (the object ’retweeted_status’ exists?)
+  private final Boolean isRetweeted;      // is it a retweet? (the object ’retweeted_status’ exists?)
   private final Long retweetedUserId; // [if retweeted] (’retweeted_status’->’user’->’id’)
   private final Long retweetedTweetId; // [if retweeted] (’retweeted_status’->’id’)
   private final String retweetedUserName;
   private final Long timestampMs;		  // seconds from epoch ('timestamp_ms')
 
   public ExtendedSimplifiedTweet(Long tweetId, String text, Long userId, String userName,
-                                 Long followersCount, String language, boolean isRetweeted,
+                                 Long followersCount, String language, Boolean isRetweeted,
                                  Long retweetedUserId, Long retweetedTweetId, String retweetedUserName, Long timestampMs) {
     this.tweetId = tweetId;
     this.text = text;
     this.userId = userId;
     this.userName = userName;
     this.language = language;
-    this.followersCount = followersCount;
-    this.isRetweeted = isRetweeted;
-    this.retweetedUserId = retweetedUserId;
-    this.retweetedTweetId = retweetedTweetId;
-    this.retweetedUserName = retweetedUserName;
+    this.followersCount = followersCount;         //new parameter
+    this.isRetweeted = isRetweeted;               //new parameter
+    this.retweetedUserId = retweetedUserId;       //new parameter
+    this.retweetedTweetId = retweetedTweetId;     //new parameter
+    this.retweetedUserName = retweetedUserName;   //new parameter
     this.timestampMs = timestampMs;
   }
 
@@ -47,8 +47,9 @@ public class ExtendedSimplifiedTweet {
    * @return an {@link Optional} of a {@link upf.edu.ExtendedSimplifiedTweet}
    */
   public static Optional<upf.edu.ExtendedSimplifiedTweet> fromJson(String jsonStr) {
-    Long tweetId = null, userId = null, timestampMs = null;
-    String text = null, userName = null, language= null;
+    Long tweetId = null, userId = null, timestampMs = null, followersCount = null, retweetedUserId = null, retweetedTweetId = null;
+    String text = null, userName = null, language= null, retweetedUserName = null;
+    Boolean isRetweeted = null;
 
 
 
@@ -66,6 +67,16 @@ public class ExtendedSimplifiedTweet {
     }catch(Exception e) {
       return Optional.empty();
     }
+
+    //NEW CODE
+
+
+
+
+
+
+
+
 
 
     Optional <String> oText = Optional.ofNullable(final_tweet.get("text").getAsString());
@@ -105,7 +116,9 @@ public class ExtendedSimplifiedTweet {
     }else
       return Optional.empty();
 
-    upf.edu.ExtendedSimplifiedTweet simplified_tweet = new upf.edu.ExtendedSimplifiedTweet(tweetId, text, userId, userName, language, timestampMs);
+    upf.edu.ExtendedSimplifiedTweet simplified_tweet = new upf.edu.ExtendedSimplifiedTweet(tweetId, text, userId, userName,
+            followersCount, language, isRetweeted,
+            retweetedUserId, retweetedTweetId, retweetedUserName, timestampMs);
 
     return Optional.ofNullable(simplified_tweet);
 
