@@ -1,5 +1,6 @@
 package upf.edu;
 
+import com.amazonaws.jmespath.OpGreaterThan;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.JavaRDD;
@@ -14,14 +15,16 @@ import java.util.List;
 import java.io.FileWriter;
 import java.io.IOException;
 
-//spark-submit --class upf.edu.BiGramsApp --master local[*] target/lab2-4-1.0-SNAPSHOT.jar es ./dataset/out/ ./dataset/Eurovision9.json
 
-public class BiGramsApp {
+//spark-submit --class upf.edu.MostRetweetedApp --master local[*] target/lab2-4-1.0-SNAPSHOT.jar ./dataset/out/ ./dataset/Eurovision9.json
+
+
+
+public class MostRetweetedApp {
     public static void main(String[] args) throws IOException {
         List<String> argsList = Arrays.asList(args);
-        String lang = argsList.get(0);
-        String outputDir = argsList.get(1);
-        String input = argsList.get(2);
+        String outputDir = argsList.get(0);
+        String input = argsList.get(1);
 
 
         long start = System.currentTimeMillis();
@@ -34,23 +37,23 @@ public class BiGramsApp {
                 .filter(sentence -> !sentence.isEmpty())
                 .map(word -> ExtendedSimplifiedTweet.fromJson(word)) // Get Optional from tweet json
                 .filter(s-> s.isPresent()) // Filter only present
-                .map(s -> s.get().getText()) // Optional to SimplifiedTweet
-                //.filter(s -> s.getLanguage().equals(lang)) // Filter language
-                //.map(s -> s.toString()) // SimplifiedTweet to String
-                .map(word -> normalise(word)); //normalizamos el texto
+                .filter(s -> s.get().getIsRetweeted())
+                .map(s-> s.get().getRetweetedUserName());
 
-        sentences.saveAsTextFile("./dataset/out2/");
 
         JavaPairRDD<String, Integer> counts = sentences
-                .flatMap(s -> Arrays.asList(s.split("[ ]", 2)).iterator())
-                .map(word -> normalise(word))
                 .mapToPair(word -> new Tuple2<>(word, 1))
                 .reduceByKey((a, b) -> a + b);
+
         JavaPairRDD<Integer, String> swapped = counts
                 .mapToPair((PairFunction<Tuple2<String, Integer>, Integer, String>) Tuple2::swap)
                 .sortByKey(false);
 
-        swapped.saveAsTextFile(outputDir);
+        List<Tuple2<Integer, String>> aux = swapped.take(10);
+        JavaPairRDD<Integer, String> items = sparkContext.parallelizePairs(aux, 1);
+
+        items.repartition(1).saveAsTextFile(outputDir);
+
     }
 
     private static String normalise(String word) {

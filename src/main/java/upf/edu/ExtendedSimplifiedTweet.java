@@ -121,7 +121,7 @@ public class ExtendedSimplifiedTweet {
           }
           Optional<JsonObject> oRetweetedUser = Optional.ofNullable(retweetedInfo.get("user").getAsJsonObject());
           if (oRetweetedUser.isPresent()) {
-            JsonObject retweetedUser = final_tweet.get("user").getAsJsonObject();
+            JsonObject retweetedUser = retweetedInfo.get("user").getAsJsonObject();
             Optional<Long> oUserId = Optional.ofNullable(retweetedUser.get("id").getAsLong());
             if (oUserId.isPresent()) {
               retweetedUserId = retweetedUser.get("id").getAsLong();
