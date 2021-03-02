@@ -46,6 +46,7 @@ public class BiGramsApp {
                 .map(word -> normalise(word))
                 .mapToPair(word -> new Tuple2<>(word, 1))
                 .reduceByKey((a, b) -> a + b);
+
         JavaPairRDD<Integer, String> swapped = counts
                 .mapToPair((PairFunction<Tuple2<String, Integer>, Integer, String>) Tuple2::swap)
                 .sortByKey(false);
