@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-
 //spark-submit --class upf.edu.MostRetweetedApp --master local[*] target/lab2-4-1.0-SNAPSHOT.jar ./dataset/out/ ./dataset/Eurovision9.json
 
 public class MostRetweetedApp {
@@ -19,7 +18,6 @@ public class MostRetweetedApp {
         List<String> argsList = Arrays.asList(args);
         String outputDir = argsList.get(0);
         String input = argsList.get(1);
-        long start = System.currentTimeMillis();
 
         SparkConf conf = new SparkConf().setAppName("Twitter Filter");
 
@@ -71,11 +69,5 @@ public class MostRetweetedApp {
                 .sortByKey(false);
 
         result.repartition(1).saveAsTextFile(outputDir);
-    }
-
-    private static String normalise(String word) {
-
-        return word.trim().toLowerCase();
-
     }
 }
