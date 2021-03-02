@@ -31,27 +31,44 @@ public class MostRetweetedApp {
 
         JavaSparkContext sparkContext = new JavaSparkContext(conf);
 
-        JavaRDD<String> sentences = sparkContext.textFile(input)
+        JavaRDD<ExtendedSimplifiedTweet> sentences = sparkContext.textFile(input)
                 .filter(sentence -> !sentence.isEmpty())
                 .map(word -> ExtendedSimplifiedTweet.fromJson(word)) // Get Optional from tweet json
                 .filter(s-> s.isPresent()) // Filter only present
                 .filter(s -> s.get().getIsRetweeted())
-                .map(s-> s.get().getRetweetedUserName());
+                .map(s-> s.get());
 
 
-        JavaPairRDD<String, Integer> counts = sentences
+        //Usuarios ordenador de mas a menos retweets
+        JavaPairRDD<String, Integer> usersCounts = sentences
+                .map(s -> s.getRetweetedUserName())
                 .mapToPair(word -> new Tuple2<>(word, 1))
                 .reduceByKey((a, b) -> a + b);
 
-        JavaPairRDD<Integer, String> swapped = counts
+        JavaPairRDD<Integer, String> swapped1 = usersCounts
                 .mapToPair((PairFunction<Tuple2<String, Integer>, Integer, String>) Tuple2::swap)
                 .sortByKey(false);
 
-        List<Tuple2<Integer, String>> aux = swapped.take(10);
-        JavaPairRDD<Integer, String> items = sparkContext.parallelizePairs(aux, 1);
+        //10 tweets con mas retweets
+        List<Tuple2<Integer, String>> aux = swapped1.take(10);
+        JavaPairRDD<Integer, String> TenMostRetUsers = sparkContext.parallelizePairs(aux, 1);
+        List<String> topUsers = TenMostRetUsers.map(x->x._2).take(10);
+        List<Tuple2<String, String>> topUsersTweets;
 
-        items.repartition(1).saveAsTextFile(outputDir);
+        //Lista de los tweets de los 10 usuarios mas retweeteados
+        JavaPairRDD<Tuple2<String, String>, Integer> countsTweets = sentences
+                .mapToPair(x -> new Tuple2<>(new Tuple2<>(x.getRetweetedUserName(), x.getRetweetedText()), 1))
+                .filter(y -> topUsers.contains(y._1._1))
+                .reduceByKey((a, b) -> a + b);
 
+
+        //Cuantos retweets tiene el tweet más retweeteado de los 10 usuarios mas retweeteados
+        JavaPairRDD<Integer, String> swapped2 = countsTweets
+                .mapToPair(s-> new Tuple2<>(s._2, s._1._1))
+                .sortByKey(Math::max)
+                .sortByKey(false);
+
+        swapped2.repartition(1).saveAsTextFile(outputDir);
     }
 
     private static String normalise(String word) {
