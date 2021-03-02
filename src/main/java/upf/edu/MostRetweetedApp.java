@@ -18,8 +18,6 @@ import java.io.IOException;
 
 //spark-submit --class upf.edu.MostRetweetedApp --master local[*] target/lab2-4-1.0-SNAPSHOT.jar ./dataset/out/ ./dataset/Eurovision9.json
 
-
-
 public class MostRetweetedApp {
     public static void main(String[] args) throws IOException {
         List<String> argsList = Arrays.asList(args);

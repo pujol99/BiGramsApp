@@ -11,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.*;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -39,10 +40,9 @@ public class BiGramsApp {
                 //.map(s -> s.toString()) // SimplifiedTweet to String
                 .map(word -> normalise(word)); //normalizamos el texto
 
-        sentences.saveAsTextFile("./dataset/out2/");
-
+        sentences.repartition(1).saveAsTextFile("./dataset/out2/");
         JavaPairRDD<String, Integer> counts = sentences
-                .flatMap(s -> Arrays.asList(s.split("[ ]", 2)).iterator())
+                .flatMap(s -> Arrays.asList(s.split("[ ]")).iterator())
                 .map(word -> normalise(word))
                 .mapToPair(word -> new Tuple2<>(word, 1))
                 .reduceByKey((a, b) -> a + b);
@@ -50,12 +50,13 @@ public class BiGramsApp {
                 .mapToPair((PairFunction<Tuple2<String, Integer>, Integer, String>) Tuple2::swap)
                 .sortByKey(false);
 
-        swapped.saveAsTextFile(outputDir);
+        swapped.repartition(1).saveAsTextFile(outputDir);
     }
 
     private static String normalise(String word) {
 
         return word.trim().toLowerCase();
+
 
     }
 }
